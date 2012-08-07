@@ -1,6 +1,6 @@
 require 'redmine'
 
-Redmine::Plugin.register :redmine_helpdesk do
+Redmine::Plugin.register :redmine_ssl_auth do
   name 'Redmine SSL auth plugin'
   author 'Jorge Bernal'
   description 'Enable authentication using SSL client certificates'

@@ -23,16 +23,56 @@ module RedmineSslAuth
       
       module InstanceMethods
         def try_ssl_auth
-          session[:email] = request.env["SSL_CLIENT_S_DN_CN"]
-          if session[:email].nil? and request.env['HTTP_SSL_CLIENT_S_DN']
-            tmp = request.env['HTTP_SSL_CLIENT_S_DN'].scan(/emailAddress=([\w\d\-\.]+@[\w\d\-\.]+\.[\w\d]+)\//).flatten
-            session[:email] = tmp.first
-          end
+          #logger.info ">>> Login attempt via SSL"
+          #request.env.to_hash.each { |key, value| logger.info "   " + key.to_s + ' = ' + value.to_s } 
+          session[:email] = request.env["SSL_CLIENT_S_DN_Email"]
           if session[:email]
-            logger.info ">>> Login with certificate email: " + session[:email]
+            logger.info " Login with certificate email: " + session[:email]
             user = User.find_by_mail(session[:email])
-            # TODO: try to register on the fly
-            unless user.nil?
+            if user.nil?
+              logger.info "   No user with that email, attempting to create one"
+              user              = User.new
+              user.mail         = session[:email]
+              displayName       = request.env["SSL_CLIENT_S_DN_CN"]
+              if displayName.nil?
+                user.lastname   = "-"
+                user.firstname  = "-"
+              else
+                names           = displayName.split(" ");
+                if(names.length < 2)
+                  logger.info "   name array has less than two elements"
+                  user.lastname   = "-"
+                  user.firstname  = "-"
+                else
+                  user.lastname   = names.pop;
+                  user.firstname  = names.join(" ");
+                end
+              end
+              
+              mailsplit         = user.mail.split("@");
+              if(mailsplit[1].casecmp("mit.edu"))
+                logger.info "   this is not a @mit.edu address"
+                return false
+              else
+                logger.info "   this is an @mit.edu address"
+                user.login      = mailsplit.shift                
+              end
+              user.password     = ActiveSupport::SecureRandom.hex(5)
+              user.language     = Setting.default_language
+
+              logger.info "   firstname: " + user.firstname
+              logger.info "   lastname:  " + user.lastname
+              logger.info "   login:     " + user.login
+              logger.info "   email:     " + user.mail
+              if user.save
+                logger.info "   account created"  
+                self.logged_user = user
+                return true
+              else
+                logger.info "   account creation failed"
+                return false
+              end
+            else
               # Valid user
               return false if !user.active?
               user.update_attribute(:last_login_on, Time.now) if user && !user.new_record?

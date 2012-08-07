@@ -13,12 +13,23 @@ Usage
 
 It's very simple
 
-*   Install the plugin: ruby script/plugin install 
-    git://git.cheshirekow.com/redmine_mit_auth.git
+*   Install the plugin: `ruby script/plugin install 
+    git://git.cheshirekow.com/redmine_mit_auth.git`
 *   Configure apache for SSL authentication (see Configuration)
-*   Visit https://YOURSITE/login and click on "use MIT Certificates"
+*   Visit `https://YOURSITE/login` and click on "use MIT Certificates"
     or "Use Touchstone"
 
+
+Info
+--------------------------
+
+Copyright (C) 2012 Josh Bialkowski (jbialk@mit.edu)
+
+This software is licensed under the GPL v3. You can find this documentation 
+at [Documentation][] and the source code at [Source][]
+
+[Documentation]: http://www.cheshirekow.com/~projects/redmine_mit_auth/
+[Source]:        git://git.cheshirekow.com/redmine_mit_auth/
 
 
 Notes 
@@ -26,18 +37,18 @@ Notes
 
 *   SSL authentication is based on the plugin by 
     Jorge Bernal <jbernal@ebox-platform.com>
-    *   git://github.com/koke/redmine_ssl_auth.git
+    *   `git://github.com/koke/redmine_ssl_auth.git`
 *   The SSL authentcation  uses the following certificate fields 
-    *   CLIENT_S_DN_Email (email, username)
-    *   CLIENT_S_DN_CN (display name)
-*   It is expected that CLIENT_S_DN_Email is an @mit.edu address. The username
+    *   `CLIENT_S_DN_Email` (email, username)
+    *   `CLIENT_S_DN_CN` (display name)
+*   It is expected that `CLIENT_S_DN_Email` is an @mit.edu address. The username
     that is generated is the same as teh athena account. 
-*   You can visit /login?skip_ssl=1 to skip SSL authentication and do regular 
+*   You can visit `/login?skip_ssl=1` to skip SSL authentication and do regular 
     login
 *   The Shibboleth authentication expects the apache environment variable 
     "email" to be the email stored for the user in the redmine database
 *   If the user does not exist, it will be created
-*   You can visit /login?skip_shib=1 to skip shibboleth authentication and do 
+*   You can visit `/login?skip_shib=1` to skip shibboleth authentication and do 
     regular login
 
 
@@ -45,7 +56,7 @@ Notes
 Configure Apache
 --------------------------
 
-Nice tutorial: http://www.vanemery.com/Linux/Apache/apache-SSL.html
+Nice tutorial: `http://www.vanemery.com/Linux/Apache/apache-SSL.html`
 
 In my case, I put the following in my http (port :80) configuration
 
@@ -110,8 +121,3 @@ configuration I have
         </Location>
                 
                 
-Questions
---------------------------
-
-To jbialk@mit.edu
-

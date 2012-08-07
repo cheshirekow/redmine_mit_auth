@@ -1,2 +1,3 @@
 it:
   ssl_auth_ssl_login: Login con certificato MIT
+  shib_auth_shib_login: Login con Touchstone

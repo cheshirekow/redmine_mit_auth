@@ -14,12 +14,12 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # 
-module RedmineSslAuth
+module RedmineShibAuth
   module MonkeyPatches
     module AccountPatch
-      def login_with_ssl_auth
-        if params[:force_ssl]
-          if try_ssl_auth
+      def login_with_shib_auth
+        if params[:force_shib]
+          if try_shib_auth
             redirect_back_or_default :controller => 'my', :action => 'page'
             return
           else
@@ -27,29 +27,31 @@ module RedmineSslAuth
             return
           end
         end
-        if !User.current.logged? and not params[:skip_ssl]
-          if try_ssl_auth
+        if !User.current.logged? and not params[:skip_shib]
+          if try_shib_auth
             redirect_back_or_default :controller => 'my', :action => 'page'
             return
           end
         end
                 
-        login_without_ssl_auth
+        login_without_shib_auth
       end
       
       module InstanceMethods
-        def try_ssl_auth
-          #logger.info ">>> Login attempt via SSL"
-          #request.env.to_hash.each { |key, value| logger.info "   " + key.to_s + ' = ' + value.to_s } 
-          session[:email] = request.env["SSL_CLIENT_S_DN_Email"]
+        def try_shib_auth
+          session[:email] = request.env["mail"]
+          if session[:email].nil?
+            return false
+          end
+          logger.info "Shibboleth auth plugin, mail env var: " + session[:email]
           if session[:email]
-            logger.info " Login with certificate email: " + session[:email]
+            logger.info "   Login with shibboleth email: " + session[:email]
             user = User.find_by_mail(session[:email])
             if user.nil?
               logger.info "   No user with that email, attempting to create one"
               user              = User.new
               user.mail         = session[:email]
-              displayName       = request.env["SSL_CLIENT_S_DN_CN"]
+              displayName       = request.env["displayName"]
               if displayName.nil?
                 user.lastname   = "-"
                 user.firstname  = "-"
@@ -68,7 +70,7 @@ module RedmineSslAuth
               mailsplit         = user.mail.split("@");
               if(mailsplit[1].casecmp("mit.edu"))
                 logger.info "   this is not a @mit.edu address"
-                return false
+                user.login      = user.mail                
               else
                 logger.info "   this is an @mit.edu address"
                 user.login      = mailsplit.shift                
@@ -102,8 +104,8 @@ module RedmineSslAuth
       
       def self.included(base)
         base.class_eval do
-          alias_method_chain :login, :ssl_auth
-          include RedmineSslAuth::MonkeyPatches::AccountPatch::InstanceMethods
+          alias_method_chain :login, :shib_auth
+          include RedmineShibAuth::MonkeyPatches::AccountPatch::InstanceMethods
         end
       end      
     end
